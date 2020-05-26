@@ -50,27 +50,27 @@ var resultsByPM = mutableMapOf<PairCollector.PackageManager, FlexibleAnalysisByP
 fun analyseAll() {
     loadResults()
 
-    for (pm in PairCollector.PackageManager.values()) {
-        // Only check pairs in PMs that are in scope
-        if (!LagCheckingService.supported(pm)) {
-            log.info("$pm flexible study not supported")
-            continue
-        }
-
-        // Avoid recomputing lag values unnecessarily
-        if (resultsCount(pm) == 0 || rerun.contains(pm)) {
-            log.info("${resultsCount(pm)} in $pm")
-            results[pm.ordinal] = resultsByPM[pm]!!.getLag()
-        }
-
-        if (resultsByPM[pm]!!.lagValueBuckets["major"]!!.isEmpty()) {
-            resultsByPM[pm]!!.getLag(extraLag = true)
-        }
-    }
-
-    saveResults()
-    printToFile()
-    printLagDetails()
+//    for (pm in PairCollector.PackageManager.values()) {
+//        // Only check pairs in PMs that are in scope
+//        if (!LagCheckingService.supported(pm)) {
+//            log.info("$pm flexible study not supported")
+//            continue
+//        }
+//
+//        // Avoid recomputing lag values unnecessarily
+//        if (resultsCount(pm) == 0 || rerun.contains(pm)) {
+//            log.info("${resultsCount(pm)} in $pm")
+//            results[pm.ordinal] = resultsByPM[pm]!!.getLag()
+//        }
+//
+//        if (resultsByPM[pm]!!.lagValueBuckets["major"]!!.isEmpty()) {
+//            resultsByPM[pm]!!.getLag(extraLag = true)
+//        }
+//    }
+//
+//    saveResults()
+//    printToFile()
+//    printLagDetails()
     printTypesOfLagToFile()
 }
 
@@ -163,6 +163,8 @@ private fun printTypesOfLagToFile() {
         out.write(" & & & & & & & & & \\\\\n")
         out.write("\\hline\n")
 
+        val aggregated = IntArray(Lag.Type.values().size) { 0 }
+
         resultsByPM.toSortedMap().forEach { (pm, analysis) ->
             if (analysis.lagValueBuckets["major"]!!.isEmpty())
                 return@forEach
@@ -170,11 +172,20 @@ private fun printTypesOfLagToFile() {
             out.write("$pm ")
             val counts = analysis.lagtypes.sum()
             Lag.Type.values().forEach {
+                aggregated[it.ordinal] += analysis.lagtypes[it.ordinal]
                 out.write("& %.2f".format(analysis.lagtypes[it.ordinal] * 100.0 / counts) + "\\% ")
             }
             out.write("& $counts ")
             out.write("\\\\\n")
         }
+
+        out.write("Overall ")
+        var total = aggregated.sum()
+        for (i in 0 until Lag.Type.values().size) {
+            out.write("& %.2f".format(aggregated[i] * 100.0 / total) + "\\% ")
+        }
+        out.write("& $total ")
+        out.write("\\\\\n")
 
         out.write("\\hline\n")
         out.write("\\end{tabular}\n")

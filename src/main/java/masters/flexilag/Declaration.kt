@@ -11,6 +11,7 @@ data class Declaration(val start: Version, val last: Version, var not: Boolean =
     companion object {
         val minimumVersion = Version.create("0.0.0")
         val maximumVersion = Version.create("999999999999.99999.99999")
+        val dummyMaxInteger = BigInteger("99999")
 
         fun getAny() : Declaration {
             return Declaration(minimumVersion, maximumVersion)
@@ -22,10 +23,10 @@ data class Declaration(val start: Version, val last: Version, var not: Boolean =
                 if (version.versionTokens[i] > BigInteger.ZERO) {
                     newVersion.versionTokens[i] = newVersion.versionTokens[i].subtract(BigInteger.ONE)
                     for (j in i+1 .. version.versionTokens.lastIndex) {
-                        newVersion.versionTokens[j] = BigInteger("99999")
+                        newVersion.versionTokens[j] = dummyMaxInteger
                     }
                     while (newVersion.versionTokens.size < 3) {
-                        newVersion.versionTokens.add(BigInteger("99999"))
+                        newVersion.versionTokens.add(dummyMaxInteger)
                     }
                     return newVersion
                 }
@@ -47,7 +48,7 @@ data class Declaration(val start: Version, val last: Version, var not: Boolean =
             val newVersion = Version.create(version.toString())
             while (newVersion.versionTokens.size < 3) { newVersion.versionTokens.add(BigInteger.ZERO) }
 
-            newVersion.versionTokens[2] = BigInteger("99999")
+            newVersion.versionTokens[2] = dummyMaxInteger
             for (i in 3 .. newVersion.versionTokens.lastIndex) {
                 newVersion.versionTokens[i] = BigInteger.ZERO
             }
@@ -58,7 +59,7 @@ data class Declaration(val start: Version, val last: Version, var not: Boolean =
             val newVersion = Version.create(version.toString())
             while (newVersion.versionTokens.size < 2) { newVersion.versionTokens.add(BigInteger.ZERO) }
 
-            newVersion.versionTokens[1] = BigInteger("99999")
+            newVersion.versionTokens[1] = dummyMaxInteger
             for (i in 2 .. newVersion.versionTokens.lastIndex) {
                 newVersion.versionTokens[i] = BigInteger.ZERO
             }
